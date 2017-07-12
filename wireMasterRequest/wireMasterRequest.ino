@@ -11,8 +11,10 @@
 
 
 #include <Wire.h>
-#include <I2C_Anything.h>
 
+int myCounter = 0;
+int A1Recieved = 0;
+int B1Recieved = 0;
 volatile char c;
 
 void setup() {
@@ -21,10 +23,12 @@ void setup() {
 }
 
 void loop() {
-  Wire.requestFrom(8, 6);    // request 6 bytes from slave device #8
-
+  A1Recieved = 0;
+  B1Recieved = 0;
+  myCounter = 0;
+  Wire.requestFrom(8, 8);    // request 6 bytes from slave device #8
   while (Wire.available()) { // slave may send less than requested
-    I2C_readAnything (c); // receive a byte as character
+    c = Wire.read(); // receive a byte as character
     if (Wire.endTransmission () == 0)
     {
       digitalWrite(LED_BUILTIN, LOW);
@@ -34,10 +38,24 @@ void loop() {
     {
       // failure ... maybe slave wasn't ready or not connected
     }
-    Serial.print(c);
+    if (myCounter == 0) {
+      A1Recieved = (c - 48);
+    }
+    if (myCounter == 4) {
+      B1Recieved = (c - 48);
+    }
+    if (1 <= myCounter && myCounter <= 3) {
+      A1Recieved = A1Recieved * 10 + (c - 48);
+    }
+    if (5 <= myCounter && myCounter <= 8) {
+      B1Recieved = B1Recieved * 10 + (c - 48);
+    }
+
+    myCounter++;
+    // Serial.print(c);
     digitalWrite(LED_BUILTIN, HIGH);
   }
-
-
+  Serial.println(A1Recieved);
+  Serial.println(B1Recieved);
   delay(1000);
 }
